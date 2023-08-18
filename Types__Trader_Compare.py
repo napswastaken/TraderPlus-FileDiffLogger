@@ -43,7 +43,7 @@ for item_type in root.findall('type'):
 missing_in_xml = set()
 for item in json_items:
     xml_item = root.find(f"./type[@name='{item}']")
-    if xml_item is None or (xml_item.find('nominal') is not None and int(xml_item.find('nominal').text) < 1):
+    if xml_item is None:
         missing_in_xml.add(item)
 
 missing_in_json = xml_items - json_items
