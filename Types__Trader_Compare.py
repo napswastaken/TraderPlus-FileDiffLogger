@@ -18,11 +18,12 @@ import json
 import xml.etree.ElementTree as ET
 import os
 
-
-with open(r'Path-to-your-TraderPlusPriceConfig', 'r') as json_file: # Point towards your TraderPlusPriceConfig.json
+# Point towards your TraderPlusPriceConfig.json
+with open(r'Path-to-your-TraderPlusPriceConfig', 'r') as json_file:
     trader_data = json.load(json_file)
 
-xml_path = r'Path-to-your-Types' # Point towards your types.xml
+# Point towards your types.xml
+xml_path = r'Path-to-your-Types'
 tree = ET.parse(xml_path)
 root = tree.getroot()
 
@@ -35,7 +36,9 @@ for category in trader_data['TraderCategories']:
 xml_items = set()
 for item_type in root.findall('type'):
     item_name = item_type.attrib['name']
-    xml_items.add(item_name)
+    nominal = item_type.find('nominal')
+    if nominal is not None and int(nominal.text) >= 1:
+        xml_items.add(item_name)
 
 missing_in_xml = set()
 for item in json_items:
@@ -45,11 +48,11 @@ for item in json_items:
 
 missing_in_json = xml_items - json_items
 
-missing_in_xml_content = "--------------------------------------\nClasses missing in types.xml but are found in TraderPlusPriceConfig.json\n--------------------------------------\n\n" + "\n".join(missing_in_xml) if missing_in_xml else "No items missing in types.xml."
+missing_in_xml_content = "----------------------------------------------------------------------------\nClasses missing in types.xml but are found in TraderPlusPriceConfig.json\n----------------------------------------------------------------------------\n\n" + "\n".join(missing_in_xml) if missing_in_xml else "No items missing in types.xml."
 
-missing_in_json_content = "--------------------------------------\nClasses missing in TraderPlusPriceConfig.json but are found in types.xml\n--------------------------------------\n\n" + "\n".join(missing_in_json) if missing_in_json else "No items missing in TraderPlusPriceConfig.json."
+missing_in_json_content = "----------------------------------------------------------------------------\nClasses missing in TraderPlusPriceConfig.json but are found in types.xml AND which has a nominal value =>1 \n----------------------------------------------------------------------------\n\n" + "\n".join(missing_in_json) if missing_in_json else "No items missing in TraderPlusPriceConfig.json."
 
-log_folder = os.path.join(os.path.expanduser('~'), 'Downloads\\Export')
+log_folder = os.path.join(os.path.expanduser('~'), 'Downloads\\Export\\Missing') #Saves to your downloads folder.
 os.makedirs(log_folder, exist_ok=True)
 
 log_xml_path = os.path.join(log_folder, 'missing_in_types.txt')
