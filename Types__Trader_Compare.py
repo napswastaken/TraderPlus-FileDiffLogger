@@ -12,11 +12,20 @@ Please adjust the file paths and other configurations as needed before running t
 __author__ = "naps"
 __copyright__ = "Copyright (C) 2023 Nick Shepherd"
 __license__ = "General Public License v3.0"
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 import xml.etree.ElementTree as ET
 import os
+
+# Add the names you want to ignore to this list
+ignore_list = """
+
+object1
+object2
+object3
+
+"""
 
 # Point towards your TraderPlusPriceConfig.json
 with open(
@@ -33,17 +42,22 @@ json_items = set()
 for category in trader_data['TraderCategories']:
     for product in category['Products']:
         item_name = product.split(',')[0].lower()
-        json_items.add(item_name)
+        if item_name not in ignore_list:
+            json_items.add(item_name)
 
 xml_items = set()
 for item_type in root.findall('type'):
     item_name = item_type.attrib['name'].lower()
+    if item_name in ignore_list:
+        continue
     nominal = item_type.find('nominal')
     if nominal is not None and int(nominal.text) >= 1:
         xml_items.add(item_name)
 
 missing_in_xml = set()
 for item in json_items:
+    if item in ignore_list:
+        continue
     xml_item = root.find(f"./type[@name='{item}']")
     if xml_item is None:
         missing_in_xml.add(item)
